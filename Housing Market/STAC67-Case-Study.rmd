@@ -1,0 +1,170 @@
+---
+title: "STAC67 Case Study: A predictive model for the median value of homes in Boston"
+output: word_document
+---
+
+## Group 16: Mahima Bhayana 1001582726 / Tao Tao 1002915660 / Bavalan Thangarajah 1002194564 / Sibo Zhang 1003242699 / Chenhao Zhang 1002910086
+
+## Friday, April 5, 2019
+```{r, include=FALSE}
+
+library(MASS)
+library(tidyverse)
+library(dplyr)
+library(car)
+```
+
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+house = read.csv("/Users/bavalanthangarajah/Documents/school/STAC67/housing.proper.csv", header=TRUE)
+firsthalf=read.csv("firsthalf.csv")
+mat=cor(house)
+require(corrplot)
+```
+
+```{r}
+house
+```
+
+
+## Abstract
+
+Boston is the largest city in Massachusetts with a population of 685,094 that is rapidly growing ("American FactFinder", 2018). As such, housing process are increasingly important to both new and current residents alike. Based on Boston housing data, a model was created to predict median housing prices based on a variety of variables. The model suggests that crime rate, percentage of low status population, student-to-teacher ratio, distance to employment centers, proportion of African-American residents by town, proximity to the Charles River, and number of rooms, combined, are the best predictors of median housing prices in Boston. However, there are some limitations to the case study, such as population increases from the time of collection.
+
+
+## Background and Significance
+With the significant growth of people’s income, owning a house is becoming a better choice for many, rather than renting. For this reason, the housing values in most metropolitan areas are rising unprecedentedly. As the capital and most populous city in Massachusetts, the city of Boston has a population of about 685,094 people, making it the sixth-largest city in U.S ("American FactFinder", 2018). Since Boston has one of the highest costs of living in America, people in city are more willing to purchase their own house, not only for living, but also as an investment, causing Boston has some of the highest house prices of any major city in America (Acitelli, T, 2018).
+
+There are multiple factors that affect housing prices, one of which is the perennially high demand for real estate. As top universities, such as Harvard and MIT, are located in Boston, a large number of international students choose to purchase real estate in the area as well. Another major factor in Boston real estate prices is the short supply of the right kind of housing—even in the city of Boston, larger-scale condo developments have historically been hard to come by (Allen, M. T., & Kau, J. B. , 1991). In this case study, our goal is to build a model to predict the relation among housing values in suburbs of Boston and the thirteen variables. If we can find the ideal model for the relation between housing value and these factors, people can easily find the most suitable and cost-effective home to invest in.
+
+
+## Exploratory Data Analysis
+
+This data set contains 506 observations and 14 independent variables. The variables are listed below:
+
+```
+x1 - per capita crime rate by town.
+x2 - proportion of residential land zoned for lots over 25,000 sq. ft.
+x3 - proportion of non-retain business acres per town.
+x4 - Charles River dummy variable.
+x5 - nitric oxides concentration (parts per 10 million).
+x6 - average number of rooms per dwelling.
+x7 - proportion of owner occupied units built prior to 1940.
+x8 - weighted distances to five Boston employment centers.
+x9 - index of accessibility to radial highways.
+x10 - full-value property-tax rate per 10,000.
+x11 - pupil-teacher ratio by town.
+x12 - 1000(B – 0.63)^2, where B = proportion of African-Americans by town.
+x13 - a numeric vector of percentage values of lower status population.
+y - median value of owner-occupied homes in $1000s(MEDV).
+```
+
+In this case study, we want to produce the box plots and correlation plots for the concerned predictor variables. First of all, we need summary the data set to check if there is any missing data and the distribution of the observations in each variable (“Summary Statistics: Definition and Examples”, 2014). Second, we need box plots to check if there is any outlier in each variable (“Basic Statistics & Probability Scatter Plots & Correlation”,  n.d.). Then we will plot the correlation to check if there are any interaction terms and how strong the correlations are between each variable (“Descriptive Statistics for Continuous Variables”, n.d.).
+
+## Data Summary
+
+``` {r, echo=FALSE}
+summary(house)
+```
+The data summary suggests there is only one categorical variable, x4, such that only around 7% of suburb housing is close to Charles River since its mean is 0.06917. The data summary also suggests that there might be outliers in some of the variables. Boxplots method will be needed to check outliers.
+
+## Boxplots
+```{r, echo=FALSE}
+boxplot(house)
+```
+
+As we see in the graph, it is evident that there are outliers in variables x1, x2 and x12. It is also important to note that x10, full-value property-tax rate per 10,000, has the highest variability, so x10 may have strong correlation with the median value of owner-occupied homes variable, y. Now, we need to find the answer in correlation plots.
+
+## Correlation Plots
+```{r, echo=FALSE}
+corrplot.mixed(mat, order="AOE")
+```
+
+From the correlation plot above, we see that housing value has a relatively strong correlation with x10, as expected. However, variable y has a much stronger negative correlation with x13, the percentage of lower status population. It is also important to notice these pairs of variables with a very high correlation between the independent variables, we cannot overlook them: x9 and x10-0.91, x3 and x5-0.76, x5 and x7-0.73, x3 and x10-0.72, x3 and x8- -0.71, x5 and x8- -0.77, x7 and x8- -0.75. We may need to drop them. Last but not least, there are also weak associations between Charles River dummy variable(x4) and all other 13 measures. This shows that Charles River dummy variable has relatively little to nearly no effect on other variables.
+
+## Model selection and validation
+
+The size of this dataset is 506, which is relatively large. Therefore, we randomly choose 50% of the data to be the building set and let the remaining part to be the validation set. We use the natural logarithm of median value of homes in Boston as it can reduce the influence of outliers and thus gives a better result. After performing the stepwise selection of both directions on our models, variables of x3 and x7 are considered insignificant and eliminated. The p-value for x2 is relatively high so we drop it. From the data analysis part, x5, x9 and x10 have high correlation with other variables, so we drop all of them. Our final model is log(y)~x1+x4+x6+x8+x11+x12+x13. The R square is 0.8106 and the adjusted R square is 0.8052 which is relatively high. The Akaike’s Information Criterion equals -862.8232 which is small. Based on the previous criterion, our selected model has high creditability. After running the model on the validation set, the mean squared prediction error is 0.0515 which is close to the mean square of residual of 0.0320. As a result, we can validate the model.
+
+```{r, echo=FALSE}
+half.1=lm(log(y)~x1+x4+x6+x8+x11+x12+x13,data=firsthalf)
+summary(half.1)
+```
+
+## Model Diagnostics
+
+### Outlying Y Observations:
+```{r, echo=FALSE}
+# Outlying Y observations
+
+# Statistical test
+outlierTest(half.1)
+# Studentized deleted residuals
+t <- rstudent(half.1)
+alpha <- 0.05
+n <- 253
+p_prime = length(coef(half.1)) 
+t_crit <- qt(1-alpha/(2*n),n-p_prime-1)
+
+which(abs(t) > t_crit)
+```
+
+
+The threshold (t_crit) from our data is 3.779453. We find two outlying Y observations greater than the threshold: the 77th with a studentized residual of 4.481745 and the 140th with a studentized residual of 3.793161, both of which are greater than the threshold of 3.779453.
+
+### Outlying X Observations:
+```{r, echo=FALSE}
+# Outlying X observations 
+Pii <- hatvalues(half.1)
+which(Pii > 2*p_prime/n)
+which(Pii > 0.5)
+```
+From our data analysis, we have 32 outlying X observations. These observations have large Pii values which indicates they are far away from the means of all X values.
+
+### Influence
+```{r, echo=FALSE}
+# Influence 
+influencePlot(half.1,
+              main="Influence Plot", 
+              sub="Boston housing" )
+DFFITS <- dffits(half.1)
+which(DFFITS > 1)
+
+D <- cooks.distance(half.1)
+which(D > qf(0.2, p_prime, n-p_prime))
+
+DFBETAS <- dfbetas(half.1)
+which(DFBETAS > 1)
+```
+To find any influential observations we must look at the DFFITS, Cooks Distance and DFBETAS.  When using DFFITS to determine any influential observations, it must satisfy the following condition of |DFFITSi| > 1 (where i is the ith observation), since our data set is medium size. We have two observations with DFFITS value greater than, one which are observations 109 and 215. When using Cook’s Distance, there is no influential observation. For DFBETAS, the  value must satisfy |DFBETASk(i)| > 1. There is no observation satisfying the criteria. Hence, we can conclude from DFFITS that two observations are influential to their fitted values in this model.
+
+### Normal Q-Q Plot:
+```{r, echo=FALSE}
+# diagnostic plots
+layout(matrix(c(1))) # optional 4 graphs/page
+plot(half.1)
+```
+From observing the Normal Q-Q Plot, we can see that the pattern does not show a straight line. The pattern has a skewed tail and there are a few points far away from the theoretical line. As the plot is skewed and has outlying observations 77,140 and 215, it violates normality. However, since we have a relatively large data set, tests of significance, construction of confidence and prediction intervals are approximately valid.
+
+### Multicollinearity:
+```{r, echo=FALSE}
+
+# Multicollinearity
+VIF <- vif(half.1)
+VIF
+
+VIFbar <- mean(vif(half.1))
+VIFbar
+```
+When checking for Multicollinearity we calculated the Variance Inflation Factor (VIF). In order to have no violation of the multicollinearity the VIF value has to be low and close to a value of 1. Our calculated VIF value turned out to be 1.510385 which is very low and close to a value of 1. Hence our linear model has no violation of the multicollinearity.
+
+## Conclusion
+
+We found that the natural log of the median home price in Boston has a linear relationship with x1, x4, x6, x8, x11, x12, and x13 This relationship suggests that, overall, the community and population of a neighbourhood are the driving force behind median home prices in Boston. x1, x13 represent crime rate and low status population, respectively. As there tends to be more crime in lower status areas (“Violence & Socioeconomic Status”, 2019), and lower status populations are less likely to afford more expensive homes, it makes sense that x1 and x13 would be negatively correlated with median home price. On the other hand, x6, x8, x11 represent education, employment, and home size—factors which tend to be associated with higher socioeconomic status (SES) and more affluent neighbourhoods. Schools in more affluent neighbourhoods tend to have access to more resources, allowing lower student-to-teacher ratios. A higher quality of education is valuable to homeowners with children, so it is natural that a higher student-to-teacher ratio can drive up housing prices in a given location (King, A. T., & Mieszkowski, P., 1973). In large cities like Boston, there is also plenty of demand for real estate in Downtown or other employment centers. Even within Toronto, real estate prices drop significantly as you move outside of the city, so it is not surprising that the distance from employment centers is a good predictor of median house price (Bajic, V., 1983). The number of rooms is also an unsurprising predictor, as larger houses tend to have more of rooms, and naturally, larger homes would be more expensive.
+
+Combined, these predictors provide a very natural explanation for housing prices at a given location. Unfortunately, they also show evidence of the cycle of poverty—real estate prices tend to be lower in places where resources, such as education, are of lower quality. Our findings suggest that there is a relationship between student-teacher ratio in schools and socioeconomic status—a timely finding given the student-to-teacher ratio changes being considered in Ontario schools. It may be helpful to consider the impact of classes with a higher student-to-teacher ratio on student success, in both the long term and the short term, to properly allocate a budget that is in the best interest of Ontario students.
+
+There are various limitations to our case study, the most prominent one being the age of the dataset; the Boston dataset we considered is a product of the 1978 United States census, making it more than 40 years old (Jn, D. H., & Rubinfeld, D. L. , 1978). As such, it may not be applicable to current housing prices in Boston. It may be much more informative and interesting to conduct this case study again with newer data.
+ 
+
